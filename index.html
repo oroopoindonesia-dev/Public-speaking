@@ -1,0 +1,861 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeakUp Academy - Kelas Public Speaking Interaktif</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Jitsi Connection Script -->
+    <script src="https://meet.jit.si/external_api.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #3b82f6 100%);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+
+    <!-- OVERLAY JIKA SEKOLAH TUTUP (Kamis - Minggu, Diluar Jam, Atau Hari Raya) -->
+    <div id="closed-overlay" class="fixed inset-0 bg-slate-950 bg-opacity-98 z-50 flex flex-col items-center justify-center p-6 text-center hidden">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-xl w-full transform transition-all duration-300 border border-slate-100">
+            <div class="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-rose-100">
+                <i class="fa-solid fa-lock text-rose-600 text-4xl animate-bounce"></i>
+            </div>
+            
+            <span class="inline-block bg-rose-100 text-rose-700 text-xs px-4 py-1.5 rounded-full font-bold uppercase tracking-wider mb-3">
+                Layanan Sedang Tutup / Libur
+            </span>
+            
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2" id="closed-reason-title">Sekolah Sedang Tutup</h2>
+            <p class="text-slate-500 text-sm mb-6 max-w-md mx-auto" id="closed-reason-desc">
+                Maaf, saat ini sistem mendeteksi bahwa kelas sedang berada di luar jam operasional atau sedang memperingati Hari Raya Nasional.
+            </p>
+
+            <!-- Card Jadwal Baru -->
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-left mb-6 space-y-3">
+                <h4 class="font-bold text-xs text-slate-400 uppercase tracking-wider">Jadwal Operasional Terbaru:</h4>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="font-semibold text-slate-700"><i class="fa-solid fa-calendar-day text-blue-600 mr-2"></i>Senin s.d Rabu</span>
+                    <span class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded text-xs">BUKA</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="font-semibold text-slate-700"><i class="fa-solid fa-clock text-blue-600 mr-2"></i>Waktu Kelas</span>
+                    <span class="font-bold text-slate-900">15.30 - 15.45 WIB</span>
+                </div>
+                <div class="flex justify-between items-center text-sm border-t pt-2 mt-2">
+                    <span class="font-semibold text-slate-500"><i class="fa-solid fa-calendar-xmark text-rose-500 mr-2"></i>Kamis s.d Minggu</span>
+                    <span class="bg-rose-100 text-rose-800 font-bold px-3 py-1 rounded text-xs">LIBUR</span>
+                </div>
+                <div class="text-xs text-amber-600 font-medium bg-amber-50 p-2.5 rounded-lg border border-amber-100 flex items-start gap-2">
+                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                    <span>Sistem juga otomatis menutup website pada Hari Raya / Hari Libur Nasional resmi Indonesia.</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button onclick="contactWhatsApp('Tanya info pendaftaran kelas')" class="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Hubungi WA Pendaftaran
+                </button>
+                <button onclick="toggleClosedOverlayTest(false)" class="w-full py-3.5 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition duration-200">
+                    Kembali Ke Beranda
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-400 mt-6">Hubungi Admin SpeakUp: <span class="font-mono font-semibold text-slate-600">0895320950607</span></p>
+        </div>
+    </div>
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-md">
+                        <i class="fa-solid fa-microphone-lines"></i>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-black tracking-tight text-slate-900">SpeakUp</span>
+                        <span class="text-[10px] block text-blue-600 font-extrabold tracking-widest -mt-1 uppercase">ACADEMY</span>
+                    </div>
+                </div>
+
+                <!-- Live Status & Clock -->
+                <div class="hidden md:flex items-center gap-4 bg-slate-50 px-4 py-2.5 rounded-2xl border border-slate-100">
+                    <span class="flex h-3 w-3 relative" id="status-ping-dot">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </span>
+                    <span id="current-day-badge" class="text-sm font-bold text-slate-700">Senin</span>
+                    <span class="text-slate-300">|</span>
+                    <span id="live-clock" class="text-sm font-mono font-extrabold text-blue-600">00:00:00</span>
+                    <span id="status-badge" class="bg-emerald-100 text-emerald-800 text-xs font-black px-2.5 py-1 rounded-lg">BUKA</span>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="hidden lg:flex items-center space-x-6">
+                    <a href="#beranda" onclick="showSection('beranda')" class="nav-link text-blue-600 font-bold transition">Beranda</a>
+                    <a href="#program" onclick="showSection('program')" class="nav-link text-slate-600 hover:text-blue-600 font-semibold transition">Program</a>
+                    <a href="#jadwal" onclick="showSection('jadwal')" class="nav-link text-slate-600 hover:text-blue-600 font-semibold transition">Aturan Jadwal</a>
+                    <a href="#live-class" onclick="showSection('live-class')" id="live-class-nav-btn" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-rose-600 shadow-sm flex items-center gap-2 transition transform active:scale-95">
+                        <i class="fa-solid fa-video animate-pulse"></i> Live Jitsi
+                    </a>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <div class="lg:hidden flex items-center gap-3">
+                    <!-- Status Indicator Ring -->
+                    <div class="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 flex items-center gap-2">
+                        <span id="mobile-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <span id="mobile-clock-text" class="text-xs font-mono font-bold text-slate-700">00:00</span>
+                    </div>
+                    <button id="mobile-menu-btn" class="text-slate-700 focus:outline-none p-2 rounded-xl hover:bg-slate-100">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3">
+            <a href="#beranda" onclick="showSection('beranda')" class="block px-4 py-3 rounded-xl text-base font-bold text-blue-600 bg-blue-50">Beranda</a>
+            <a href="#program" onclick="showSection('program')" class="block px-4 py-3 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-50">Program Pelatihan</a>
+            <a href="#jadwal" onclick="showSection('jadwal')" class="block px-4 py-3 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-50">Aturan Jadwal</a>
+            <a href="#live-class" onclick="showSection('live-class')" class="block px-4 py-3.5 rounded-xl text-base font-bold text-white bg-rose-500 hover:bg-rose-600 text-center shadow"><i class="fa-solid fa-video mr-2"></i>Masuk Live Jitsi</a>
+            
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Pusat Layanan Pendaftaran:</p>
+                <a href="tel:0895320950607" class="flex items-center gap-2 text-sm text-slate-800 font-bold">
+                    <i class="fa-solid fa-phone text-blue-600"></i> 0895320950607
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow">
+        
+        <!-- SECTION 1: BERANDA -->
+        <section id="sec-beranda" class="section-content">
+            <!-- Hero Section -->
+            <div class="gradient-bg text-white py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+                <div class="absolute -right-16 -top-16 w-96 h-96 bg-blue-500 rounded-full opacity-10 blur-3xl"></div>
+                <div class="absolute -left-16 -bottom-16 w-96 h-96 bg-emerald-500 rounded-full opacity-10 blur-3xl"></div>
+
+                <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+                    <div class="space-y-8">
+                        <div class="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-400/30 px-4 py-2 rounded-full text-xs font-extrabold text-emerald-300 uppercase tracking-widest">
+                            <i class="fa-solid fa-clock"></i> Kelas Aktif: Senin - Rabu (15.30 - 15.45 WIB)
+                        </div>
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
+                            Bicara Dengan <span class="text-emerald-400">Penuh Wibawa</span> & Keyakinan
+                        </h1>
+                        <p class="text-lg text-slate-300 max-w-lg leading-relaxed">
+                            Latih kemampuan berbicara di hadapan publik secara nyata melalui simulator kelas interaktif Jitsi Meet. Jadwal masuk eksklusif di hari kerja efektif.
+                        </p>
+                        
+                        <!-- CTA & Hubungi WA -->
+                        <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                            <button onclick="showSection('live-class')" class="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black rounded-xl shadow-xl transform hover:-translate-y-0.5 transition flex items-center justify-center gap-3">
+                                <i class="fa-solid fa-video text-lg"></i> Gabung Live Jitsi
+                            </button>
+                            <button onclick="contactWhatsApp('Halo SpeakUp Academy, saya ingin daftar kelas Public Speaking')" class="px-8 py-4 bg-slate-900 hover:bg-slate-850 border border-slate-700 text-white font-bold rounded-xl transform hover:-translate-y-0.5 transition flex items-center justify-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i> Daftar via WA
+                            </button>
+                        </div>
+
+                        <!-- Info Kontak Banner -->
+                        <div class="bg-white/5 border border-white/10 p-4 rounded-2xl max-w-md flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold tracking-widest text-slate-400">Hotline WhatsApp Pendaftaran</p>
+                                <p class="text-lg font-bold text-white mt-0.5">0895320950607</p>
+                            </div>
+                            <a href="https://wa.me/62895320950607" target="_blank" class="w-10 h-10 bg-emerald-500 text-slate-950 rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <!-- Simulated Classroom Screen -->
+                        <div class="relative mx-auto max-w-md bg-slate-900 rounded-[2.5rem] p-4 shadow-2xl border-4 border-slate-800">
+                            <!-- Notch -->
+                            <div class="absolute top-2 left-1/2 transform -translate-x-1/2 bg-slate-800 w-28 h-5 rounded-full z-10"></div>
+                            
+                            <div class="bg-slate-950 rounded-[2rem] p-6 text-white aspect-[4/3] flex flex-col justify-between overflow-hidden relative">
+                                <div class="flex justify-between items-center z-10">
+                                    <span class="bg-rose-500 text-[10px] px-2.5 py-1 rounded-full font-extrabold tracking-widest animate-pulse flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 bg-white rounded-full"></span> LIVE STREAM
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 font-mono">SpeakUp-Room-Session</span>
+                                </div>
+                                <div class="my-auto text-center z-10">
+                                    <div class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                                        <i class="fa-solid fa-microphone text-xl text-white"></i>
+                                    </div>
+                                    <p class="font-bold text-md">Praktik Evaluasi Express</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Mentor: Specialist Coach SpeakUp</p>
+                                </div>
+                                <div class="flex justify-center gap-3 z-10">
+                                    <span class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xs text-rose-400"><i class="fa-solid fa-microphone-slash"></i></span>
+                                    <span class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xs text-emerald-400"><i class="fa-solid fa-video"></i></span>
+                                    <span class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xs"><i class="fa-solid fa-cog"></i></span>
+                                </div>
+                                <!-- Background overlay patterns -->
+                                <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-blue-600 rounded-full opacity-20 blur-xl"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Simulator (Tester Panel) -->
+            <div class="py-12 bg-slate-100 border-y border-slate-200">
+                <div class="max-w-4xl mx-auto px-4 text-center">
+                    <span class="text-xs uppercase font-extrabold tracking-widest text-blue-600 bg-blue-100 px-3 py-1.5 rounded-full">Simulator Panel Penguji</span>
+                    <h3 class="text-lg font-bold mt-2 text-slate-900">Uji Batasan Jadwal Otomatis & Hari Raya</h3>
+                    <p class="text-xs text-slate-500 mt-1 max-w-lg mx-auto">Gunakan opsi simulasi di bawah ini untuk mencoba perilaku website saat status sekolah mendeteksi Hari Raya atau perubahan waktu.</p>
+                    
+                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <button onclick="setSimulateMode('normal')" class="bg-white hover:bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm text-left transition flex items-center gap-3">
+                            <div class="w-9 h-9 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-800">Gunakan Waktu Nyata</h5>
+                                <p class="text-[10px] text-slate-500">Mendeteksi waktu perangkat Anda saat ini.</p>
+                            </div>
+                        </button>
+                        <button onclick="setSimulateMode('hariraya')" class="bg-white hover:bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm text-left transition flex items-center gap-3">
+                            <div class="w-9 h-9 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-mosque"></i></div>
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-800">Paksa "Hari Raya" (Tutup)</h5>
+                                <p class="text-[10px] text-slate-500">Simulasikan penutupan saat libur besar.</p>
+                            </div>
+                        </button>
+                        <button onclick="setSimulateMode('buka')" class="bg-white hover:bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm text-left transition flex items-center gap-3 col-span-1 sm:col-span-2 md:col-span-1">
+                            <div class="w-9 h-9 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-door-open"></i></div>
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-800">Paksa "Jam Buka" (Senin, 15:35)</h5>
+                                <p class="text-[10px] text-slate-500">Simulasikan jendela waktu aktif.</p>
+                            </div>
+                        </button>
+                    </div>
+                    <div id="simulated-status" class="mt-4 text-xs font-semibold text-blue-600 hidden">
+                        <span class="inline-block bg-blue-50 border border-blue-200 rounded px-3 py-1">Mode aktif: Waktu Nyata</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Keunggulan Program -->
+            <div class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-sm text-blue-600 font-bold tracking-widest uppercase">Eksklusivitas Pembelajaran</h2>
+                    <p class="mt-2 text-3xl font-extrabold text-slate-950 sm:text-4xl">Mengapa Kelas Dibatasi 15 Menit?</p>
+                    <p class="mt-4 text-md text-slate-600 leading-relaxed">Metode Express Speaking kami melatih Anda untuk langsung berpidato to-the-point secara efisien tanpa membuang kata-kata tidak bermakna (filler words). Setiap detik berharga!</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-8 rounded-2xl border border-slate-150 shadow-sm">
+                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-6"><i class="fa-solid fa-hourglass-start"></i></div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Simulasi Keadaan Mendesak</h4>
+                        <p class="text-sm text-slate-500 leading-relaxed">Latihan berdurasi 15 menit (15.30 - 15.45) merekonstruksi suasana ketat presentasi eksekutif profesional atau elevator pitch di dunia nyata.</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl border border-slate-150 shadow-sm">
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl mb-6"><i class="fa-solid fa-user-shield"></i></div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Kurikulum Terfokus Terarah</h4>
+                        <p class="text-sm text-slate-500 leading-relaxed">Tidak ada teori yang bertele-tele. Peserta masuk, langsung menyampaikan pidato, dan menerima feedback instan dari instruktur.</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl border border-slate-150 shadow-sm">
+                        <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center text-xl mb-6"><i class="fa-solid fa-calendar-check"></i></div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Komitmen Kehadiran Tinggi</h4>
+                        <p class="text-sm text-slate-500 leading-relaxed">Format 3 hari dalam seminggu (Senin - Rabu) melatih kedisiplinan dan menjaga konsistensi perkembangan performa public speaking Anda.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: PROGRAM -->
+        <section id="sec-program" class="section-content hidden py-20 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-sm text-blue-600 font-bold tracking-widest uppercase">Paket & Kurikulum</h2>
+                    <p class="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">Program Express Public Speaking</p>
+                    <p class="mt-4 text-md text-slate-600">Investasi terbaik untuk meningkatkan nilai tawar karier dan rasa percaya diri Anda.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <!-- Program 1 -->
+                    <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">Materi Utama</span>
+                            <h3 class="text-2xl font-extrabold text-slate-950 mt-4 mb-3">Power Pitch Mastery</h3>
+                            <p class="text-sm text-slate-600 mb-6">Cocok untuk pemula yang ingin langsung bisa menyusun materi presentasi persuasif berdurasi pendek secara kokoh.</p>
+                            <ul class="space-y-3 text-sm text-slate-600">
+                                <li><i class="fa-solid fa-check-double text-emerald-500 mr-2"></i> Teknik Menghancurkan Demam Panggung</li>
+                                <li><i class="fa-solid fa-check-double text-emerald-500 mr-2"></i> Pola Struktur Pidato 3 Babak</li>
+                                <li><i class="fa-solid fa-check-double text-emerald-500 mr-2"></i> Sesi Praktik Jitsi Setiap Senin-Rabu</li>
+                            </ul>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-slate-100">
+                            <button onclick="contactWhatsApp('Saya ingin daftar program Power Pitch Mastery')" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition text-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Hubungi WA 0895320950607
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Program 2 -->
+                    <div class="bg-white rounded-3xl p-8 border-2 border-emerald-500 shadow-md flex flex-col justify-between relative">
+                        <div class="absolute -top-3 right-6 bg-emerald-500 text-slate-950 text-[10px] font-black px-4 py-1 rounded-full tracking-widest uppercase">TERFAVORIT</div>
+                        <div>
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">Private & Group</span>
+                            <h3 class="text-2xl font-extrabold text-slate-950 mt-4 mb-3">Executive Leadership Speech</h3>
+                            <p class="text-sm text-slate-600 mb-6">Kurikulum khusus manajerial, pemimpin instansi, dan negosiator tingkat tinggi dengan bimbingan vokal mendalam.</p>
+                            <ul class="space-y-3 text-sm text-slate-600">
+                                <li><i class="fa-solid fa-check-double text-emerald-500 mr-2"></i> Latihan Intonasi & Gestur Karismatik</li>
+                                <li><i class="fa-solid fa-check-double text-emerald-500 mr-2"></i> Penanganan Pertanyaan Sulit Audiens</li>
+                                <li><i class="fa-solid fa-check-double text-emerald-500 mr-2"></i> Feedback Evaluasi Langsung</li>
+                            </ul>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-slate-100">
+                            <button onclick="contactWhatsApp('Saya ingin daftar program Executive Leadership Speech')" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black rounded-xl transition text-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Hubungi WA 0895320950607
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: ATURAN JADWAL -->
+        <section id="sec-jadwal" class="section-content hidden py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-sm text-blue-600 font-bold tracking-widest uppercase">Sistem Kontrol Akses</h2>
+                    <p class="mt-2 text-3xl font-extrabold text-slate-950 sm:text-4xl">Ketentuan Jadwal Otomatis</p>
+                    <p class="mt-4 text-md text-slate-600">Website SpeakUp dikontrol penuh secara otomatis untuk memastikan ketepatan waktu belajar Anda.</p>
+                </div>
+
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <!-- Rule Info Card 1 -->
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-150 flex flex-col sm:flex-row gap-4 items-start">
+                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid fa-calendar-check"></i></div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-900 text-md">Senin s.d Rabu (BUKA 03.30 - 03.45 Sore)</h4>
+                            <p class="text-sm text-slate-500 mt-1 leading-relaxed">Hanya pada tiga hari ini, kelas virtual Jitsi kami akan dibuka secara tepat waktu pada pukul 15.30 WIB dan secara otomatis dinonaktifkan kembali pada pukul 15.45 WIB.</p>
+                        </div>
+                    </div>
+
+                    <!-- Rule Info Card 2 -->
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-150 flex flex-col sm:flex-row gap-4 items-start">
+                        <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid fa-calendar-xmark"></i></div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-900 text-md">Kamis s.d Minggu (LIBUR TOTAL)</h4>
+                            <p class="text-sm text-slate-500 mt-1 leading-relaxed">Akses website akan dibatasi dan menampilkan layar terkunci otomatis di luar rentang hari operasional agar siswa dapat beristirahat.</p>
+                        </div>
+                    </div>
+
+                    <!-- Rule Info Card 3 -->
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-150 flex flex-col sm:flex-row gap-4 items-start">
+                        <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0"><i class="fa-solid fa-mosque"></i></div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-900 text-md">Hari Raya / Libur Nasional (TUTUP OTOMATIS)</h4>
+                            <p class="text-sm text-slate-500 mt-1 leading-relaxed">Website ini mengintegrasikan daftar hari libur nasional Indonesia. Saat mendeteksi hari raya besar, sistem akan menghentikan seluruh proses masuk kelas virtual secara otomatis demi menghormati hari keagamaan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: LIVE JITSI CLASS -->
+        <section id="sec-live-class" class="section-content hidden py-12 bg-slate-950 text-white min-h-[85vh] flex flex-col justify-between">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex flex-col">
+                <!-- Header Live Control -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-slate-900 p-6 rounded-3xl border border-slate-800">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
+                            <span class="text-[10px] font-black text-rose-400 tracking-widest uppercase">RUANG UTAMA JITSI MEET</span>
+                        </div>
+                        <h2 class="text-2xl font-black">Live Room SpeakUp</h2>
+                        <p class="text-xs text-slate-400">Silakan gunakan audio dan video Anda untuk interaksi belajar yang maksimal.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                        <button onclick="relaunchJitsi()" class="flex-grow md:flex-grow-0 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-arrows-rotate"></i> Refresh Kelas
+                        </button>
+                        <button onclick="changeRoomPrompt()" class="flex-grow md:flex-grow-0 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-door-open"></i> Ganti Ruang Jitsi
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Jitsi Frame Target -->
+                <div class="relative w-full flex-grow rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl min-h-[500px] flex flex-col items-center justify-center">
+                    <div id="jitsi-container" class="absolute inset-0 w-full h-full z-10 bg-slate-950"></div>
+                    
+                    <!-- Fallback / Loading State -->
+                    <div id="jitsi-loading-placeholder" class="text-center p-8 max-w-md z-0">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-emerald-500 border-slate-800 mb-4"></div>
+                        <h4 class="text-lg font-bold">Menghubungkan ke Ruang Kelas Jitsi...</h4>
+                        <p class="text-slate-400 text-xs mt-2">Pastikan izin kamera & mikrofon browser Anda aktif.</p>
+                    </div>
+                </div>
+
+                <!-- Feedback & Help Banner -->
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+                    <div>
+                        <h5 class="text-sm font-bold">Mengalami kendala teknis dalam ruang Jitsi?</h5>
+                        <p class="text-xs text-slate-400 mt-1">Tim IT support kami siap siaga membantu Anda agar kelas berjalan lancar.</p>
+                    </div>
+                    <button onclick="contactWhatsApp('Halo support SpeakUp, saya sedang mengalami kendala di kelas Jitsi.')" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-headset"></i> Laporkan Kendala
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 text-slate-400 border-t border-slate-900 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 text-white">
+                    <div class="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow">
+                        <i class="fa-solid fa-microphone-lines"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">SpeakUp Academy</span>
+                </div>
+                <p class="text-xs leading-relaxed text-slate-400">
+                    Pelatihan public speaking inovatif dengan batasan waktu yang mendisiplinkan mental pembicara berkelas dunia.
+                </p>
+                <div class="flex space-x-4 text-slate-600 pt-2">
+                    <a href="#" class="hover:text-emerald-400"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                    <a href="#" class="hover:text-emerald-400"><i class="fa-brands fa-instagram text-lg"></i></a>
+                    <a href="#" class="hover:text-emerald-400"><i class="fa-brands fa-youtube text-lg"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-white font-bold text-sm mb-4 uppercase tracking-wider text-xs">Peta Navigasi</h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="#beranda" onclick="showSection('beranda')" class="hover:text-emerald-400 transition">Beranda Utama</a></li>
+                    <li><a href="#program" onclick="showSection('program')" class="hover:text-emerald-400 transition">Program Pelatihan</a></li>
+                    <li><a href="#jadwal" onclick="showSection('jadwal')" class="hover:text-emerald-400 transition">Jadwal Kelas Aktif</a></li>
+                    <li><a href="#live-class" onclick="showSection('live-class')" class="hover:text-emerald-400 transition">Mulai Live Jitsi</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold text-sm mb-4 uppercase tracking-wider text-xs">Aturan Operasional</h4>
+                <ul class="space-y-2 text-xs text-slate-400">
+                    <li>Senin s/d Rabu: <span class="text-emerald-400 font-semibold">15.30 - 15.45 WIB</span></li>
+                    <li>Kamis s/d Minggu: <span class="text-rose-500 font-semibold">Tutup (Libur)</span></li>
+                    <li>Hari Raya / Libur Nasional: <span class="text-amber-500 font-semibold">Tutup Otomatis</span></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold text-sm mb-4 uppercase tracking-wider text-xs">Registrasi Cepat</h4>
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">Hubungi admin pendaftaran langsung melalui WhatsApp resmi kami di nomor berikut:</p>
+                <button onclick="contactWhatsApp('Saya mau mendaftar kelas SpeakUp')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-slate-950 font-black text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> 0895320950607
+                </button>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-slate-900 text-center text-xs text-slate-600 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p>&copy; 2026 SpeakUp Academy. Seluruh Hak Cipta Dilindungi.</p>
+            <p>Hotline Pendaftaran: 0895320950607</p>
+        </div>
+    </footer>
+
+    <!-- NOTIFICATION SYSTEM (TOAST) -->
+    <div id="custom-toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50 max-w-sm">
+        <div class="w-9 h-9 bg-emerald-500 text-slate-950 rounded-xl flex items-center justify-center text-lg flex-shrink-0" id="toast-icon">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <h5 class="font-extrabold text-xs text-slate-100" id="toast-title">Notifikasi</h5>
+            <p class="text-xs text-slate-400 mt-0.5" id="toast-message">Pesan notifikasi.</p>
+        </div>
+    </div>
+
+    <!-- CORE JAVASCRIPT LOGIC -->
+    <script>
+        // State variables
+        let currentRoom = "SpeakUp-Room-Main";
+        let jitsiAPI = null;
+        let isSchoolOpen = true;
+        let testMode = "normal"; // "normal" | "hariraya" | "buka"
+
+        // No WhatsApp Baru untuk seluruh aksi pendaftaran
+        const REGISTRATION_PHONE = "0895320950607";
+
+        // Daftar Hari Raya / Libur Nasional Indonesia Tahun 2026 (Format Bulan-Tanggal)
+        // Bulan dimulai dari 0 (0 = Januari, 11 = Desember)
+        const INDONESIAN_HOLIDAYS_2026 = [
+            { month: 0, date: 1, name: "Tahun Baru Masehi" },
+            { month: 1, date: 17, name: "Tahun Baru Imlek 2577 Kongzili" },
+            { month: 2, date: 19, name: "Hari Suci Nyepi (Tahun Baru Saka 1948)" },
+            { month: 2, date: 20, name: "Hari Raya Idul Fitri 1447 Hijriah (Hari Ke-1)" },
+            { month: 2, date: 21, name: "Hari Raya Idul Fitri 1447 Hijriah (Hari Ke-2)" },
+            { month: 3, date: 3, name: "Wafat Yesus Kristus" },
+            { month: 4, date: 1, name: "Hari Buruh Internasional" },
+            { month: 4, date: 14, name: "Hari Raya Waisak 2570 BE" },
+            { month: 4, date: 21, name: "Kenaikan Yesus Kristus" },
+            { month: 5, date: 1, name: "Hari Lahir Pancasila" },
+            { month: 5, date: 27, name: "Hari Raya Idul Adha 1447 Hijriah" },
+            { month: 6, date: 27, name: "Tahun Baru Islam 1448 Hijriah" },
+            { month: 7, date: 17, name: "Hari Kemerdekaan Republik Indonesia ke-81" },
+            { month: 8, date: 5, name: "Maulid Nabi Muhammad SAW" },
+            { month: 11, date: 25, name: "Hari Raya Natal" }
+        ];
+
+        window.onload = function() {
+            // Jalankan siklus pengecekan jadwal otomatis & realtime clock
+            checkSchoolSchedule();
+            setInterval(checkSchoolSchedule, 5000); // Periksa setiap 5 detik agar responsif
+
+            startLiveClock();
+
+            // Set ke beranda saat masuk pertama kali
+            showSection('beranda');
+
+            // Mobile menu button event listener
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        };
+
+        // Live Clock Engine
+        function startLiveClock() {
+            const daysIndonesia = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+            
+            function updateClock() {
+                const now = new Date();
+                const dayName = daysIndonesia[now.getDay()];
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                const timeString = `${hours}:${minutes}:${seconds}`;
+                
+                // Update Desktop Badges
+                document.getElementById('live-clock').innerText = timeString;
+                document.getElementById('current-day-badge').innerText = dayName;
+                
+                // Update Mobile Header Badges
+                document.getElementById('mobile-clock-text').innerText = `${hours}:${minutes}`;
+            }
+            
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        // PENGATUR SIMULASI JADWAL & WAKTU (Untuk Pengujian Instan)
+        function setSimulateMode(mode) {
+            testMode = mode;
+            const statusEl = document.getElementById('simulated-status');
+            statusEl.classList.remove('hidden');
+            
+            let badgeText = "Waktu Perangkat Riil";
+            if (mode === 'hariraya') {
+                badgeText = "Mode Simulasi: AKTIF (Simulasi Libur Hari Raya)";
+            } else if (mode === 'buka') {
+                badgeText = "Mode Simulasi: AKTIF (Simulasi Hari Senin, Jam 15.35 WIB)";
+            }
+            
+            statusEl.innerHTML = `<span class="inline-block bg-blue-100 text-blue-800 border border-blue-200 rounded-lg px-3 py-1 font-bold">${badgeText}</span>`;
+            checkSchoolSchedule();
+            showToast("Mode Simulasi Diubah", `Sistem dialihkan ke ${badgeText}`, "info");
+        }
+
+        // JADWAL BARU: Senin - Rabu (15.30 - 15.45 WIB), Kamis - Minggu Libur, Hari Raya Libur
+        function checkSchoolSchedule() {
+            const now = new Date();
+            let currentDay = now.getDay(); // 0: Minggu, 1: Senin, 2: Selasa, 3: Rabu, 4: Kamis, 5: Jumat, 6: Sabtu
+            let currentHour = now.getHours();
+            let currentMinute = now.getMinutes();
+            let currentMonth = now.getMonth();
+            let currentDate = now.getDate();
+
+            let isHoliday = false;
+            let holidayName = "";
+
+            // Jika dalam mode simulasi "Hari Raya"
+            if (testMode === "hariraya") {
+                isHoliday = true;
+                holidayName = "Hari Raya Idul Fitri (Simulasi)";
+            } 
+            // Jika dalam mode simulasi "Jam Buka"
+            else if (testMode === "buka") {
+                currentDay = 1; // Paksa Senin
+                currentHour = 15; // Jam 15
+                currentMinute = 35; // Menit 35
+                isHoliday = false;
+            }
+
+            // Pengecekan Hari Raya Nasional Riil jika mode normal
+            if (testMode === "normal") {
+                const holidayFound = INDONESIAN_HOLIDAYS_2026.find(h => h.month === currentMonth && h.date === currentDate);
+                if (holidayFound) {
+                    isHoliday = true;
+                    holidayName = holidayFound.name;
+                }
+            }
+
+            // DOM Elements
+            const overlay = document.getElementById('closed-overlay');
+            const overlayTitle = document.getElementById('closed-reason-title');
+            const overlayDesc = document.getElementById('closed-reason-desc');
+            const statusBadge = document.getElementById('status-badge');
+            const statusPingDot = document.getElementById('status-ping-dot');
+            const mobileStatusDot = document.getElementById('mobile-status-dot');
+
+            // Evaluasi Status Buka/Tutup
+            // Hari operasional: Senin (1), Selasa (2), Rabu (3)
+            const isValidDay = (currentDay === 1 || currentDay === 2 || currentDay === 3);
+            
+            // Jam operasional: 15:30 s.d 15:45 (03.30 PM - 03.45 PM)
+            const currentTotalMinutes = (currentHour * 60) + currentMinute;
+            const startTotalMinutes = (15 * 60) + 30; // 15:30 -> 930 menit
+            const endTotalMinutes = (15 * 60) + 45;   // 15:45 -> 945 menit
+            const isValidTime = (currentTotalMinutes >= startTotalMinutes && currentTotalMinutes < endTotalMinutes);
+
+            if (isHoliday) {
+                // TUTUP KARENA HARI RAYA
+                isSchoolOpen = false;
+                overlayTitle.innerText = "Sekolah Libur Hari Raya";
+                overlayDesc.innerHTML = `Hari ini bertepatan dengan peringatan <strong class="text-amber-600">${holidayName}</strong>. Seluruh proses pembelajaran dinonaktifkan sementara.`;
+                overlay.classList.remove('hidden');
+                updateStatusBadge(false, "LIBUR");
+            } else if (!isValidDay) {
+                // TUTUP KARENA HARI LIBUR MINGGUAN (Kamis - Minggu)
+                isSchoolOpen = false;
+                overlayTitle.innerText = "Sekolah Sedang Tutup";
+                overlayDesc.innerHTML = `Kami melayani kelas interaktif setiap hari <strong>Senin s.d Rabu</strong>. Hari Kamis, Jumat, Sabtu & Minggu kami libur.`;
+                overlay.classList.remove('hidden');
+                updateStatusBadge(false, "LIBUR");
+            } else if (!isValidTime) {
+                // TUTUP KARENA DI LUAR JAM OPERASIONAL (Di luar 15.30 - 15.45)
+                isSchoolOpen = false;
+                overlayTitle.innerText = "Di Luar Jam Praktik";
+                overlayDesc.innerHTML = `Kelas hanya dapat diakses pada pukul <strong>15.30 - 15.45 WIB</strong> (Senin s.d Rabu). Silakan hubungi admin untuk info pendaftaran lengkap.`;
+                overlay.classList.remove('hidden');
+                updateStatusBadge(false, "TUTUP");
+            } else {
+                // SEKOLAH BUKA
+                isSchoolOpen = true;
+                overlay.classList.add('hidden');
+                updateStatusBadge(true, "BUKA");
+            }
+        }
+
+        function updateStatusBadge(isOpen, text) {
+            const statusBadge = document.getElementById('status-badge');
+            const statusPingDot = document.getElementById('status-ping-dot');
+            const mobileStatusDot = document.getElementById('mobile-status-dot');
+
+            if (isOpen) {
+                if (statusBadge) {
+                    statusBadge.innerText = text;
+                    statusBadge.className = "bg-emerald-100 text-emerald-800 text-xs font-black px-2.5 py-1 rounded-lg";
+                }
+                if (statusPingDot) {
+                    statusPingDot.innerHTML = `
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    `;
+                }
+                if (mobileStatusDot) {
+                    mobileStatusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                }
+            } else {
+                if (statusBadge) {
+                    statusBadge.innerText = text;
+                    statusBadge.className = "bg-rose-100 text-rose-800 text-xs font-black px-2.5 py-1 rounded-lg";
+                }
+                if (statusPingDot) {
+                    statusPingDot.innerHTML = `<span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>`;
+                }
+                if (mobileStatusDot) {
+                    mobileStatusDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
+                }
+                
+                // Tutup kelas Jitsi jika sedang aktif tapi waktu habis
+                destroyJitsiInstance();
+            }
+        }
+
+        // Section Navigation Controller
+        function showSection(sectionId) {
+            // Tutup mobile menu drawer
+            document.getElementById('mobile-menu').classList.add('hidden');
+
+            // Cek batasan hak akses halaman live-class
+            if (sectionId === 'live-class' && !isSchoolOpen) {
+                showToast("Akses Ditolak", "Maaf, Ruang Jitsi sedang ditutup saat ini.", "error");
+                // Paksa kembali ke beranda dan tampilkan overlay
+                checkSchoolSchedule();
+                return;
+            }
+
+            // Sembunyikan semua section
+            const sections = document.querySelectorAll('.section-content');
+            sections.forEach(sec => sec.classList.add('hidden'));
+
+            // Tampilkan section terpilih
+            const targetSec = document.getElementById(`sec-${sectionId}`);
+            if (targetSec) {
+                targetSec.classList.remove('hidden');
+            }
+
+            // Kelola inisialisasi / penghapusan Jitsi Meet
+            if (sectionId === 'live-class') {
+                initiateJitsiMeet();
+            } else {
+                destroyJitsiInstance();
+            }
+
+            // Sinkronisasi navigasi link visual
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(link => {
+                if (link.getAttribute('href') === `#${sectionId}`) {
+                    link.className = "nav-link text-blue-600 font-bold transition";
+                } else {
+                    link.className = "nav-link text-slate-600 hover:text-blue-600 font-semibold transition";
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Jitsi Meet External API Management
+        function initiateJitsiMeet() {
+            const container = document.getElementById('jitsi-container');
+            container.innerHTML = ""; // Bersihkan kontainer lama
+
+            document.getElementById('jitsi-loading-placeholder').classList.remove('hidden');
+
+            const domain = "meet.jit.si";
+            const options = {
+                roomName: currentRoom,
+                width: "100%",
+                height: "100%",
+                parentNode: container,
+                configOverwrite: {
+                    startWithAudioMuted: true,
+                    startWithVideoMuted: true,
+                    disableThirdPartyRequests: true,
+                    prejoinPageEnabled: false
+                },
+                interfaceConfigOverwrite: {
+                    SHOW_JITSI_WATERMARK: false,
+                    MOBILE_APP_PROMO: false
+                },
+                onload: function() {
+                    document.getElementById('jitsi-loading-placeholder').classList.add('hidden');
+                    showToast("Terhubung", "Masuk ke Jitsi Room: " + currentRoom, "success");
+                }
+            };
+
+            try {
+                jitsiAPI = new JitsiMeetExternalAPI(domain, options);
+                jitsiAPI.addEventListener('readyToClose', () => {
+                    destroyJitsiInstance();
+                    showSection('beranda');
+                });
+            } catch (err) {
+                console.error("Gagal memulai Jitsi SDK:", err);
+                document.getElementById('jitsi-loading-placeholder').innerHTML = `
+                    <div class="text-rose-500 mb-2"><i class="fa-solid fa-triangle-exclamation text-3xl"></i></div>
+                    <p class="font-bold">Gagal menghubungkan Jitsi API</p>
+                    <p class="text-xs text-slate-400">Pastikan izin media browser diaktifkan.</p>
+                `;
+            }
+        }
+
+        function destroyJitsiInstance() {
+            if (jitsiAPI) {
+                jitsiAPI.dispose();
+                jitsiAPI = null;
+            }
+        }
+
+        function relaunchJitsi() {
+            destroyJitsiInstance();
+            initiateJitsiMeet();
+        }
+
+        function changeRoomPrompt() {
+            const roomInput = prompt("Masukkan ID Ruang Kelas Baru (Contoh: SpeakUp-KelasA):", currentRoom);
+            if (roomInput && roomInput.trim() !== "") {
+                currentRoom = roomInput.trim().replace(/[^a-zA-Z0-9-]/g, "");
+                relaunchJitsi();
+            }
+        }
+
+        // WhatsApp Integration Link Generator
+        function contactWhatsApp(customText = "") {
+            const encodedText = encodeURIComponent(customText);
+            const waUrl = `https://wa.me/62895320950607?text=${encodedText}`;
+            window.open(waUrl, '_blank');
+        }
+
+        // Toggle Manual Overlay untuk sekadar melihat beranda jika di-lock
+        function toggleClosedOverlayTest(show) {
+            const overlay = document.getElementById('closed-overlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+                showToast("Pratinjau Mode", "Anda sedang melihat isi beranda website (Akses Kelas tetap terkunci).", "info");
+            }
+        }
+
+        // Toast System
+        function showToast(title, message, type = "success") {
+            const toast = document.getElementById('custom-toast');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastTitle.innerText = title;
+            toastMsg.innerText = message;
+
+            if (type === "success") {
+                toastIcon.className = "w-9 h-9 bg-emerald-500 text-slate-950 rounded-xl flex items-center justify-center text-lg flex-shrink-0";
+                toastIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else if (type === "error") {
+                toastIcon.className = "w-9 h-9 bg-rose-500 text-white rounded-xl flex items-center justify-center text-lg flex-shrink-0";
+                toastIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                toastIcon.className = "w-9 h-9 bg-blue-500 text-white rounded-xl flex items-center justify-center text-lg flex-shrink-0";
+                toastIcon.innerHTML = '<i class="fa-solid fa-info"></i>';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
+
+```
